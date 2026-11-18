@@ -1,5 +1,7 @@
 import json
 
+
+# MAC 연산
 def mac_operation(pattern, filter_data):
     score = 0
 
@@ -10,95 +12,9 @@ def mac_operation(pattern, filter_data):
     return score
 
 
-cross_pattern = [
-    [0, 1, 0],
-    [1, 1, 1],
-    [0, 1, 0]
-]
-
-cross_filter = [
-    [0, 1, 0],
-    [1, 1, 1],
-    [0, 1, 0]
-]
-
-result = mac_operation(cross_pattern, cross_filter)
-
-print("MAC 연산 결과:", result)
-
-x_filter = [
-    [1, 0, 1],
-    [0, 1, 0],
-    [1, 0, 1]
-]
-
-cross_score = mac_operation(cross_pattern, cross_filter)
-x_score = mac_operation(cross_pattern, x_filter)
-
-print("Cross 점수:", cross_score)
-print("X 점수:", x_score)
-if cross_score > x_score:
-    print("판별 결과: Cross")
-else:
-    print("판별 결과: X")
-    print("=== Mini NPU Simulator ===")
-print("3 x 3 패턴을 입력하세요.")
-
-user_pattern = []
-
-for i in range(3):
-    while True:
-        row = input(f"{i + 1}번째 줄 숫자 3개 입력: ")
-        values = row.split()
-
-        if len(values) != 3:
-            print("숫자 3개를 입력해주세요.")
-            continue
-
-        if not all(value in ["0", "1"] for value in values):
-            print("0과 1만 입력할 수 있습니다.")
-            continue
-
-        numbers = list(map(int, values))
-        user_pattern.append(numbers)
-        break
-
-cross_score = mac_operation(user_pattern, cross_filter)
-x_score = mac_operation(user_pattern, x_filter)
-
-print("Cross 점수:", cross_score)
-print("X 점수:", x_score)
-
-if cross_score > x_score:
-    print("판별 결과: Cross")
-else:
-    print("판별 결과: X")
-    import json
-
-with open("data.json", "r", encoding="utf-8") as file:
-    data = json.load(file)
-
-print("JSON에서 읽은 이름:", data["name"])
-print("JSON에서 읽은 패턴:", data["pattern"])
-json_pattern = data["pattern"]
-
-json_cross_score = mac_operation(json_pattern, cross_filter)
-json_x_score = mac_operation(json_pattern, x_filter)
-
-print("JSON Cross 점수:", json_cross_score)
-print("JSON X 점수:", json_x_score)
-
-epsilon = 1e-9
-
-if abs(json_cross_score - json_x_score) <= epsilon:
-    print("JSON 판별 결과: Tie")
-elif json_cross_score > json_x_score:
-    print("JSON 판별 결과: Cross")
-else:
-    print("JSON 판별 결과: X")
+# Cross 필터 생성
 def create_cross_filter(size):
     filter_data = []
-
     center = size // 2
 
     for i in range(size):
@@ -115,12 +31,7 @@ def create_cross_filter(size):
     return filter_data
 
 
-test_filter = create_cross_filter(5)
-
-print("=== 5x5 Cross 필터 ===")
-
-for row in test_filter:
-    print(row)
+# X 필터 생성
 def create_x_filter(size):
     filter_data = []
 
@@ -138,70 +49,83 @@ def create_x_filter(size):
     return filter_data
 
 
-test_x_filter = create_x_filter(5)
+# 패턴 판별
+def classify_pattern(pattern):
+    size = len(pattern)
 
-print("=== 5x5 X 필터 ===")
+    cross_filter = create_cross_filter(size)
+    x_filter = create_x_filter(size)
 
-for row in test_x_filter:
-    print(row)
-# 5x5 X 패턴 준비
-test_pattern = create_x_filter(5)
+    cross_score = mac_operation(pattern, cross_filter)
+    x_score = mac_operation(pattern, x_filter)
 
-# 5x5 필터 준비
-cross_5x5 = create_cross_filter(5)
-x_5x5 = create_x_filter(5)
+    epsilon = 1e-9
 
-# MAC 연산
-cross_score_5x5 = mac_operation(test_pattern, cross_5x5)
-x_score_5x5 = mac_operation(test_pattern, x_5x5)
+    if abs(cross_score - x_score) <= epsilon:
+        result = "Tie"
+    elif cross_score > x_score:
+        result = "Cross"
+    else:
+        result = "X"
 
-# 점수 출력
-print("=== 5x5 패턴 판별 ===")
-print("Cross 점수:", cross_score_5x5)
-print("X 점수:", x_score_5x5)
+    return cross_score, x_score, result
 
-# 판별 결과
-if abs(cross_score_5x5 - x_score_5x5) <= 1e-9:
-    print("판별 결과: Tie")
-elif cross_score_5x5 > x_score_5x5:
-    print("판별 결과: Cross")
-else:
-    print("판별 결과: X")
-    # 13x13 Cross 패턴 테스트
-test_pattern_13 = create_cross_filter(13)
 
-cross_filter_13 = create_cross_filter(13)
-x_filter_13 = create_x_filter(13)
+# 3x3 사용자 입력
+def get_user_pattern():
+    pattern = []
 
-cross_score_13 = mac_operation(test_pattern_13, cross_filter_13)
-x_score_13 = mac_operation(test_pattern_13, x_filter_13)
+    print("=== Mini NPU Simulator ===")
+    print("3 x 3 패턴을 입력하세요.")
 
-print("=== 13x13 패턴 판별 ===")
-print("Cross 점수:", cross_score_13)
-print("X 점수:", x_score_13)
+    for i in range(3):
+        while True:
+            row = input(f"{i + 1}번째 줄 숫자 3개 입력: ")
+            values = row.split()
 
-if abs(cross_score_13 - x_score_13) <= 1e-9:
-    print("판별 결과: Tie")
-elif cross_score_13 > x_score_13:
-    print("판별 결과: Cross")
-else:
-    print("판별 결과: X")
-# 25x25 Cross 패턴 테스트
-test_pattern_25 = create_cross_filter(25)
+            if len(values) != 3:
+                print("숫자 3개를 입력해주세요.")
+                continue
 
-cross_filter_25 = create_cross_filter(25)
-x_filter_25 = create_x_filter(25)
+            if not all(value in ["0", "1"] for value in values):
+                print("0과 1만 입력할 수 있습니다.")
+                continue
 
-cross_score_25 = mac_operation(test_pattern_25, cross_filter_25)
-x_score_25 = mac_operation(test_pattern_25, x_filter_25)
+            pattern.append(list(map(int, values)))
+            break
 
-print("=== 25x25 패턴 판별 ===")
-print("Cross 점수:", cross_score_25)
-print("X 점수:", x_score_25)
+    return pattern
 
-if abs(cross_score_25 - x_score_25) <= 1e-9:
-    print("판별 결과: Tie")
-elif cross_score_25 > x_score_25:
-    print("판별 결과: Cross")
-else:
-    print("판별 결과: X")
+
+# 프로그램 실행
+def main():
+    user_pattern = get_user_pattern()
+
+    cross_score, x_score, result = classify_pattern(user_pattern)
+
+    print("=== 사용자 패턴 판별 결과 ===")
+    print("Cross 점수:", cross_score)
+    print("X 점수:", x_score)
+    print("판별 결과:", result)
+
+    print("\n=== JSON 자동 분석 시작 ===")
+
+    with open("data.json", "r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    for item in data["patterns"]:
+        name = item["name"]
+        pattern = item["pattern"]
+
+        cross_score, x_score, result = classify_pattern(pattern)
+
+        print("패턴 이름:", name)
+        print("Cross 점수:", cross_score)
+        print("X 점수:", x_score)
+        print("판별 결과:", result)
+        print("--------------------")
+
+
+if __name__ == "__main__":
+    main()
+
